@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plated Bistro - Digital Kiosk</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      :root {
+        --dark-gray: #282929;
+        --medium-gray: #373737;
+        --light-gray: #292929;
+        --gold: #db9304;
+        --light-gold: #f3ce78;
+      }
+
+      body {
+        font-family: "Playfair Display", serif;
+        background-color: var(--dark-gray);
+        color: var(--light-gold);
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .header {
+        background-color: var(--medium-gray);
+        color: var(--gold);
+        padding: 15px 0;
+        text-align: center;
+        border-bottom: 3px solid var(--gold);
+        font-family: "Cinzel", serif;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        letter-spacing: 2px;
+      }
+
+      .container {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      .menu-section {
+        flex: 3;
+        padding: 20px;
+        overflow-y: auto;
+        background-color: var(--medium-gray);
+      }
+
+      .cart-section {
+        flex: 1;
+        padding: 20px;
+        background-color: var(--light-gray);
+        border-left: 2px solid var(--gold);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .category-title {
+        color: var(--gold);
+        font-family: "Cinzel", serif;
+        border-bottom: 1px solid var(--gold);
+        padding-bottom: 10px;
+        margin-top: 30px;
+        font-size: 1.5rem;
+      }
+
+      .menu-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .menu-item {
+        background-color: var(--light-gray);
+        border-radius: 8px;
+        padding: 0;
+        border: 1px solid var(--gold);
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+        overflow: hidden;
+      }
+
+      .menu-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+      }
+
+      .item-image {
+        width: 100%;
+        height: 150px;
+        background-color: #222;
+        background-size: cover;
+        background-position: center;
+      }
+
+      .item-details {
+        padding: 15px;
+      }
+
+      .item-name {
+        color: var(--gold);
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+      }
+
+      .item-description {
+        color: #ccc;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+      }
+
+      .item-price {
+        color: var(--gold);
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+
+      .add-to-cart {
+        background-color: var(--gold);
+        color: var(--dark-gray);
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: "Cinzel", serif;
+        font-weight: bold;
+        margin-top: 10px;
+        transition: background-color 0.3s;
+        width: 100%;
+      }
+
+      .add-to-cart:hover {
+        background-color: var(--light-gold);
+      }
+
+      .cart-title {
+        color: var(--gold);
+        font-family: "Cinzel", serif;
+        font-size: 1.5rem;
+        border-bottom: 1px solid var(--gold);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+      }
+
+      .cart-items {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .cart-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed var(--gold);
+      }
+
+      .cart-item-name {
+        color: #eee;
+      }
+
+      .cart-item-price {
+        color: var(--gold);
+      }
+
+      .cart-total {
+        margin-top: 20px;
+        font-size: 1.2rem;
+        color: var(--gold);
+        font-weight: bold;
+        text-align: right;
+      }
+
+      .checkout-btn {
+        background-color: var(--gold);
+        color: var(--dark-gray);
+        border: none;
+        padding: 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: "Cinzel", serif;
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-top: 20px;
+        transition: background-color 0.3s;
+      }
+
+      .checkout-btn:hover {
+        background-color: var(--light-gold);
+      }
+
+      .receipt-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+      }
+
+      .receipt {
+        background-color: #fff;
+        width: 300px;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        font-family: "Courier New", monospace;
+        color: #000;
+        margin: 0 auto;
+      }
+
+      .receipt-header {
+        text-align: center;
+        margin-bottom: 20px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        border-bottom: 1px dashed #000;
+        padding-bottom: 10px;
+      }
+
+      .receipt-items {
+        margin-bottom: 20px;
+      }
+
+      .receipt-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+      }
+
+      .receipt-total {
+        font-weight: bold;
+        border-top: 1px dashed #000;
+        padding-top: 10px;
+        margin-top: 10px;
+        text-align: right;
+      }
+
+      .receipt-footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 0.8rem;
+      }
+
+      .close-receipt {
+        background-color: var(--gold);
+        color: var(--dark-gray);
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: "Cinzel", serif;
+        font-weight: bold;
+        margin-top: 20px;
+        display: block;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>PLATED BISTRO</h1>
+    </div>
+
+    <div class="container">
+      <div class="menu-section">
+        <div class="category-title">MAINS</div>
+        <div class="menu-items">
+          <div
+            class="menu-item"
+            data-id="1"
+            data-name="Ricotta Agnolotti"
+            data-price="1200"
+          >
+            <div
+              class="item-image"
+              style="background-image: url('img/ricotta.jpg')"
+            ></div>
+            <div class="item-details">
+              <div class="item-name">Ricotta Agnolotti</div>
+              <div class="item-description">
+                Light pasta pockets filled with rich ricotta and fragrant sage.
+              </div>
+              <div class="item-price">₱1,200</div>
+              <button class="add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+          <div
+            class="menu-item"
+            data-id="2"
+            data-name="Nordic Steelhead Trout"
+            data-price="1250"
+          >
+            <div
+              class="item-image"
+              style="background-image: url('img/trout.jpg')"
+            ></div>
+            <div class="item-details">
+              <div class="item-name">Nordic Steelhead Trout</div>
+              <div class="item-description">
+                Fresh ocean flavors, with dill and horseradish air.
+              </div>
+              <div class="item-price">₱1,250</div>
+              <button class="add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+          <div
+            class="menu-item"
+            data-id="3"
+            data-name="Lobster Bisque"
+            data-price="1500"
+          >
+            <div
+              class="item-image"
+              style="background-image: url('img/lobster.jpg')"
+            ></div>
+            <div class="item-details">
+              <div class="item-name">Lobster Bisque</div>
+              <div class="item-description">
+                Butter-poached lobster kissed by cognac cream and chive oil.
+              </div>
+              <div class="item-price">₱1,500</div>
+              <button class="add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="category-title">SIDES</div>
+        <div class="menu-items">
+          <div
+            class="menu-item"
+            data-id="4"
+            data-name="Seared Scallops"
+            data-price="500"
+          >
+            <div
+              class="item-image"
+              style="background-image: url('img/scallops.jpg')"
+            ></div>
+            <div class="item-details">
+              <div class="item-name">Seared Scallops</div>
+              <div class="item-description">
+                Scallops over a pea purée, with a beurre blanc.
+              </div>
+              <div class="item-price">₱500</div>
+              <button class="add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+          <div
+            class="menu-item"
+            data-id="5"
+            data-name="Iberico Pork Belly"
+            data-price="750"
+          >
+            <div
+              class="item-image"
+              style="background-image: url('img/pork.jpg')"
+            ></div>
+            <div class="item-details">
+              <div class="item-name">Iberico Pork Belly</div>
+              <div class="item-description">
+                Crackling crust, sweet apple purée, and tangy fennel slaw.
+              </div>
+              <div class="item-price">₱750</div>
+              <button class="add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="category-title">DESSERTS</div>
+        <div class="menu-items">
+          <div
+            class="menu-item"
+            data-id="6"
+            data-name="Basque Cheesecake"
+            data-price="450"
+          >
+            <div
+              class="item-image"
+              style="background-image: url('img/cheesecake.jpg')"
+            ></div>
+            <div class="item-details">
+              <div class="item-name">Basque Cheesecake</div>
+              <div class="item-description">
+                Caramelized delight with a perfectly scorched top and a creamy
+                center.
+              </div>
+              <div class="item-price">₱450</div>
+              <button class="add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+          <div
+            class="menu-item"
+            data-id="7"
+            data-name="Dark Chocolate Soufflé"
+            data-price="550"
+          >
+            <div
+              class="item-image"
+              style="background-image: url('img/souffle.jpg')"
+            ></div>
+            <div class="item-details">
+              <div class="item-name">Dark Chocolate Soufflé</div>
+              <div class="item-description">
+                Rich dark chocolate, paired with Madagascar vanilla bean ice
+                cream.
+              </div>
+              <div class="item-price">₱550</div>
+              <button class="add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+          <div
+            class="menu-item"
+            data-id="8"
+            data-name="Chocolate Profiteroles"
+            data-price="470"
+          >
+            <div
+              class="item-image"
+              style="
+                background-image: url('https://static01.nyt.com/images/2015/02/11/dining/11KITCHEN1/11KITCHEN1-jumbo.jpg');
+              "
+            ></div>
+            <div class="item-details">
+              <div class="item-name">Chocolate Profiteroles</div>
+              <div class="item-description">
+                Airy choux pastry filled with a rich custard and a luscious
+                chocolate sauce.
+              </div>
+              <div class="item-price">₱470</div>
+              <button class="add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cart-section">
+        <div class="cart-title">YOUR ORDER</div>
+        <div class="cart-items">
+          <!-- Cart items will be added here dynamically -->
+        </div>
+        <div class="cart-total">Total: ₱<span id="cart-total">0.00</span></div>
+        <button class="checkout-btn">PROCEED TO CHECKOUT</button>
+      </div>
+    </div>
+
+    <div class="receipt-container">
+      <div class="receipt">
+        <div class="receipt-header">PLATED BISTRO</div>
+        <div class="receipt-date">Date: <span id="receipt-date"></span></div>
+        <div class="receipt-time">Time: <span id="receipt-time"></span></div>
+        <div class="receipt-items">
+          <!-- Receipt items will be added here dynamically -->
+        </div>
+        <div class="receipt-total">
+          TOTAL: ₱<span id="receipt-total">0.00</span>
+        </div>
+        <div class="receipt-footer">
+          Thank you for dining with us!<br />
+          Please visit again soon
+        </div>
+        <button class="close-receipt">CLOSE</button>
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        let cart = [];
+
+        // Add to cart functionality
+        $(".add-to-cart").click(function () {
+          const item = $(this).closest(".menu-item");
+          const id = item.data("id");
+          const name = item.data("name");
+          const price = parseFloat(item.data("price"));
+
+          // Check if item already exists in cart
+          const existingItem = cart.find((i) => i.id === id);
+
+          if (existingItem) {
+            existingItem.quantity += 1;
+          } else {
+            cart.push({
+              id: id,
+              name: name,
+              price: price,
+              quantity: 1,
+            });
+          }
+
+          updateCart();
+        });
+
+        // Update cart display
+        function updateCart() {
+          $(".cart-items").empty();
+          let total = 0;
+
+          cart.forEach((item) => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+
+            $(".cart-items").append(`
+                <div class="cart-item" data-id="${item.id}">
+                  <div class="cart-item-name">${item.name} x${
+              item.quantity
+            }</div>
+                  <div class="cart-item-price">₱${itemTotal.toFixed(2)}</div>
+                </div>
+              `);
+          });
+
+          $("#cart-total").text(total.toFixed(2));
+        }
+
+        // Checkout button
+        $(".checkout-btn").click(function () {
+          if (cart.length === 0) {
+            alert("Your cart is empty. Please add some items before checkout.");
+            return;
+          }
+
+          // Show receipt
+          showReceipt();
+        });
+
+        // Show receipt
+        function showReceipt() {
+          const now = new Date();
+          const dateStr = now.toLocaleDateString();
+          const timeStr = now.toLocaleTimeString();
+
+          $("#receipt-date").text(dateStr);
+          $("#receipt-time").text(timeStr);
+
+          $(".receipt-items").empty();
+          let total = 0;
+
+          cart.forEach((item) => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+
+            $(".receipt-items").append(`
+                <div class="receipt-item">
+                  <div>${item.name} x${item.quantity}</div>
+                  <div>₱${itemTotal.toFixed(2)}</div>
+                </div>
+              `);
+          });
+
+          $("#receipt-total").text(total.toFixed(2));
+          $(".receipt-container").fadeIn();
+        }
+
+        // Close receipt
+        $(".close-receipt").click(function () {
+          $(".receipt-container").fadeOut();
+          cart = [];
+          updateCart();
+        });
+      });
+    </script>
+  </body>
+</html>
